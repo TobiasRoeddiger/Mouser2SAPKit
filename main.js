@@ -9,6 +9,14 @@ const URL_ORDER_OVERVIEW = "https://www.mouser.de/OrderHistory/OrdersView.aspx"
 const USERNAME_INPUT_SELECTOR = 'input#Username.form-control'
 const PASSWORD_INPUT_SELECTOR = 'input#Password.form-control'
 const LOGIN_BUTTON_SELECTOR = 'button#LoginButton.btn.btn-primary'
+const ORDER_BUTTON_SELECTOR = 'selectedOrderButton'
+const ROW_WHITE_SELECTOR = 'cartRowWhite'
+const ROW_GRAY_SELECTOR = 'alt-grey'
+const ORDER_ITEM_SELECTOR = 'cartItemKITIdentifier'
+const PRICE_SELECTOR = 'td-price'
+const QUANTITY_SELECTOR = 'td-qty'
+const SUPPLIER_PROD_NO_SELECTOR = '#row_MPN > td:nth-of-type(2)'
+const DESCRIPTION_SELECTOR = '.cartProdDetailcell > tbody > tr:nth-of-type(3) > td:nth-of-type(2)'
 
 // XLSX CONSTANTS
 const DESCRIPTION = "DESCRIPTION"
@@ -42,6 +50,7 @@ global[DEFAULT_PREFIX + PRICE_UNIT] = "100"
 global[DEFAULT_PREFIX + UNIT] = "ST"
 global[DEFAULT_PREFIX + CURRENCY] = "EUR"
 global[DEFAULT_PREFIX + SUPPLIER_ID] = "937663"
+global[DEFAULT_PREFIX + FIXED_SUPPLIER] = "X"
 
 // COMMAND LINE ARGS
 let username = ""
@@ -83,34 +92,34 @@ const nightmare = new Nightmare({ show: true }).viewport(800, 600);
     .wait(500)
     .goto(URL_ORDER_OVERVIEW)
     .wait(2000)
-    .evaluate((salesOrderNo) => {
+    .evaluate((salesOrderNo, ORDER_BUTTON_SELECTOR) => {
       var allOrders = document.getElementsByTagName('a');
       for (var i = 0; i < allOrders.length; i++) {
-        if (allOrders[i].innerText == salesOrderNo) allOrders[i].id = 'selectedOrderButton';
+        if (allOrders[i].innerText == salesOrderNo) allOrders[i].id = ORDER_BUTTON_SELECTOR;
       }
-    }, salesOrderNo)
-    .click('a[id=selectedOrderButton]')
+    }, salesOrderNo, ORDER_BUTTON_SELECTOR)
+    .click(`a[id=${ORDER_BUTTON_SELECTOR}]`)
     .wait(500)
-    .evaluate(() => {
-      var whiteCells = document.getElementsByClassName('cartRowWhite')
-      var greyCells = document.getElementsByClassName('alt-grey')
+    .evaluate((ROW_WHITE_SELECTOR, ROW_GRAY_SELECTOR, ORDER_ITEM_SELECTOR) => {
+      var whiteCells = document.getElementsByClassName(ROW_WHITE_SELECTOR)
+      var greyCells = document.getElementsByClassName(ROW_GRAY_SELECTOR)
 
       for (var i = 0; i < whiteCells.length; i++) {
-        whiteCells[i].classList.add('cartItemKITIdentifier')
+        whiteCells[i].classList.add(ORDER_ITEM_SELECTOR)
       }
 
       for (var i = 0; i < greyCells.length; i++) {
-        greyCells[i].classList.add('cartItemKITIdentifier')
+        greyCells[i].classList.add(ORDER_ITEM_SELECTOR)
       }
-    })
-    .evaluate(() => {
-      var allItems = document.getElementsByClassName('cartItemKITIdentifier');
+    }, ROW_WHITE_SELECTOR, ROW_GRAY_SELECTOR, ORDER_ITEM_SELECTOR)
+    .evaluate((SELECTORS) => {
+      var allItems = document.getElementsByClassName(SELECTORS[0]);
       var processedItems = []
       for (var i = 0; i < allItems.length; i++) {
-        var price = parseFloat(allItems[i].getElementsByClassName("td-price")["0"].innerText.replace(" €", "").replace(",", "."))
-        var quantity = allItems[i].getElementsByClassName("td-qty")["0"].innerText
-        var supplierProdNo = allItems[i].querySelector("#row_MPN > td:nth-of-type(2)").innerText
-        var description = allItems[i].querySelector(".cartProdDetailcell > tbody > tr:nth-of-type(3) > td:nth-of-type(2)").innerText
+        var price = parseFloat(allItems[i].getElementsByClassName(SELECTORS[1])["0"].innerText.replace(" €", "").replace(",", "."))
+        var quantity = allItems[i].getElementsByClassName(SELECTORS[2])["0"].innerText
+        var supplierProdNo = allItems[i].querySelector(SELECTORS[3]).innerText
+        var description = allItems[i].querySelector(SELECTORS[4]).innerText
 
         processedItems.push(
           {
@@ -122,7 +131,7 @@ const nightmare = new Nightmare({ show: true }).viewport(800, 600);
         );
       }
       return processedItems;
-    })
+    }, [ORDER_ITEM_SELECTOR, PRICE_SELECTOR, QUANTITY_SELECTOR, SUPPLIER_PROD_NO_SELECTOR, DESCRIPTION_SELECTOR])
     .end()
     .then(function (salesOrderItems) {
       let xlsxArray = new Array();
