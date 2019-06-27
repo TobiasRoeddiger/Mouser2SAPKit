@@ -1,7 +1,7 @@
 {
-  "name": "automationkit",
+  "name": "mouser2sapkit",
   "version": "1.0.0",
-  "description": "Automation tools for KIT processes.",
+  "description": "Automation tool for KIT process.",
   "main": "main.js",
   "scripts": {
     "start": "babel-node ./main.js"
