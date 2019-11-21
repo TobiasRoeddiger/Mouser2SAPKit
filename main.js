@@ -45,17 +45,11 @@ const ORDERED_FIELDS = [DESCRIPTION, CATEGORY_ID, SUPPLIER_PROD_NO, PRICE_UNIT,
 
 const DEFAULT_PREFIX = "DEFAULT_"
 
-global[DEFAULT_PREFIX + CATEGORY_ID] = "9947"
-global[DEFAULT_PREFIX + PRICE_UNIT] = "100"
-global[DEFAULT_PREFIX + UNIT] = "ST"
-global[DEFAULT_PREFIX + CURRENCY] = "EUR"
-global[DEFAULT_PREFIX + SUPPLIER_ID] = "937663"
-global[DEFAULT_PREFIX + FIXED_SUPPLIER] = "X"
-
 // COMMAND LINE ARGS
 let username = ""
 let password = ""
 let salesOrderNo = ""
+let pspElement = ""
 
 process.argv.forEach(function (val, index, array) {
   switch (index) {
@@ -68,14 +62,27 @@ process.argv.forEach(function (val, index, array) {
     case 4:
       salesOrderNo = val;
       break;
+    case 5:
+      pspElement = val;
+      break;
   }
 })
+
+global[DEFAULT_PREFIX + PSP_ELEMENT] = "X"
+global[DEFAULT_PREFIX + CATEGORY_ID] = "9947"
+global[DEFAULT_PREFIX + PRICE_UNIT] = "100"
+global[DEFAULT_PREFIX + UNIT] = "ST"
+global[DEFAULT_PREFIX + CURRENCY] = "EUR"
+global[DEFAULT_PREFIX + SUPPLIER_ID] = "937663"
+global[DEFAULT_PREFIX + FIXED_SUPPLIER] = "X"
+global[DEFAULT_PREFIX + PSP_ELEMENT] = pspElement
 
 // STARTING SCRIPTS
 console.log("Starting to scrape your order ...\n")
 console.log(`Username       : ${username}`);
 console.log(`Password       : ${password}`);
-console.log(`Sales Order No.: ${salesOrderNo}\n`)
+console.log(`Sales Order No.: ${salesOrderNo}`)
+console.log(`PSP-Element    : ${pspElement}\n`)
 
 const nightmare = new Nightmare({ show: true }).viewport(800, 600);
 (async () => {
